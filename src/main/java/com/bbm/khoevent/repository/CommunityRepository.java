@@ -6,4 +6,6 @@ import org.springframework.stereotype.Repository;
 
 @Repository
 public interface CommunityRepository extends JpaRepository<Community, Long> {
+
+    boolean existsByNameOrEmail(String name, String email);
 }
