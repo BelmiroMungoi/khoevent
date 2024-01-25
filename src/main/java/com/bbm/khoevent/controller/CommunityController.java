@@ -3,6 +3,7 @@ package com.bbm.khoevent.controller;
 import com.bbm.khoevent.dto.request.CommunityRequest;
 import com.bbm.khoevent.dto.response.CommunityResponse;
 import com.bbm.khoevent.service.CommunityService;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -17,7 +18,7 @@ public class CommunityController {
     private final CommunityService communityService;
 
     @PostMapping("/")
-    public ResponseEntity<String> create(@RequestBody CommunityRequest request) {
+    public ResponseEntity<String> create(@Valid @RequestBody CommunityRequest request) {
         return  ResponseEntity.ok(communityService.createCommunity(request));
 
     }
@@ -37,7 +38,7 @@ public class CommunityController {
      * 2 - Para isso devemos colocar o id da entidade a ser actualizada como parametro.
      * */
     @PutMapping("/{id}")
-    public ResponseEntity<String> updateCommunity(@RequestBody CommunityRequest request,@PathVariable("id") Long id) {
+    public ResponseEntity<String> updateCommunity(@Valid @RequestBody CommunityRequest request,@PathVariable("id") Long id) {
         return ResponseEntity.ok(communityService.update(request, id));
     }
 
