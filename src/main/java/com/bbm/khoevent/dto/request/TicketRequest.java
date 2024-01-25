@@ -8,7 +8,13 @@ import lombok.Data;
 @Data
 public class TicketRequest {
 
+    @NotBlank
+    @Size(min = 2, max = 250)
     private String attendeeName;
+
+    @Email
+    @NotBlank
     private String attendeeEmail;
+
     private boolean isChecked;
 }
