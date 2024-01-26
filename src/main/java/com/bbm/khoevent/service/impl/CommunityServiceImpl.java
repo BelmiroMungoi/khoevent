@@ -1,14 +1,22 @@
 package com.bbm.khoevent.service.impl;
 
+import com.bbm.khoevent.dto.request.AuthenticationRequest;
 import com.bbm.khoevent.dto.request.CommunityRequest;
 import com.bbm.khoevent.dto.response.CommunityResponse;
+import com.bbm.khoevent.dto.response.TokenResponse;
 import com.bbm.khoevent.exception.BadRequestException;
 import com.bbm.khoevent.exception.EntityNotFoundException;
 import com.bbm.khoevent.mapper.Mapper;
 import com.bbm.khoevent.model.Community;
+import com.bbm.khoevent.model.Token;
 import com.bbm.khoevent.repository.CommunityRepository;
+import com.bbm.khoevent.repository.TokenRepository;
+import com.bbm.khoevent.security.JwtService;
 import com.bbm.khoevent.service.CommunityService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -17,7 +25,11 @@ import java.util.List;
 @RequiredArgsConstructor
 public class CommunityServiceImpl implements CommunityService {
 
+    private final AuthenticationManager authenticationManager;
     private final CommunityRepository communityRepository;
+    private final TokenRepository tokenRepository;
+    private final PasswordEncoder passwordEncoder;
+    private final JwtService jwtService;
     private final Mapper mapper;
 
     @Override
@@ -30,7 +42,7 @@ public class CommunityServiceImpl implements CommunityService {
                 .description(request.getDescription())
                 .email(request.getEmail())
                 .website(request.getWebsite())
-                .password(request.getPassword())
+                .password(passwordEncoder.encode(request.getPassword()))
                 .build();
         communityRepository.save(communityToBeSaved);
         return "Comunidade Criada com Sucesso";
@@ -78,5 +90,31 @@ public class CommunityServiceImpl implements CommunityService {
         communityRepository.save(community);
 
         return "Comunidade actualizada com sucesso";
+    }
+
+    @Override
+    public TokenResponse login(AuthenticationRequest request) {
+        authenticationManager.authenticate(
+                new UsernamePasswordAuthenticationToken(
+                        request.getEmail(),
+                        request.getPassword()
+                )
+        );
+        var community = communityRepository.findByEmail(request.getEmail()).orElseThrow();
+        var jwtToken = jwtService.generateToken(community);
+        saveUserToken(community, jwtToken);
+        return TokenResponse.builder()
+                .accessToken(jwtToken)
+                .build();
+    }
+
+    private void saveUserToken(Community community, String jwtToken) {
+        var token = Token.builder()
+                .community(community)
+                .token(jwtToken)
+                .expired(false)
+                .revoked(false)
+                .build();
+        tokenRepository.save(token);
     }
 }

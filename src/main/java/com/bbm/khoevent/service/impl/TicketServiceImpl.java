@@ -7,6 +7,7 @@ import com.bbm.khoevent.mapper.Mapper;
 import com.bbm.khoevent.model.Event;
 import com.bbm.khoevent.model.Ticket;
 import com.bbm.khoevent.repository.TicketRepository;
+import com.bbm.khoevent.service.EmailService;
 import com.bbm.khoevent.service.EventService;
 import com.bbm.khoevent.service.TicketService;
 import lombok.RequiredArgsConstructor;
@@ -20,6 +21,7 @@ public class TicketServiceImpl implements TicketService {
 
     private final Mapper mapper;
     private final EventService eventService;
+    private final EmailService emailService;
     private final TicketRepository ticketRepository;
 
     @Override
@@ -39,8 +41,13 @@ public class TicketServiceImpl implements TicketService {
                 .isChecked(false)
                 .event(event)
                 .build();
-        ticketRepository.save(ticketToBeSaved);
-        return "Evento criado com sucesso!";
+        var savedTicket = ticketRepository.save(ticketToBeSaved);
+
+        emailService.sendEmail(savedTicket.getAttendeeName(),
+                savedTicket.getAttendeeEmail(),
+                event.getTitle(),
+                event.getEventDate());
+        return "Ticket criado com sucesso! Por favor verifique o seu email!";
     }
 
     // Pegando todos os tickets
